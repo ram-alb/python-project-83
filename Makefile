@@ -4,10 +4,13 @@ install:
 lint:
 	poetry run flake8 page_analyzer
 
+test:
+	poetry run pytest tests
+
 selfcheck:
 	poetry check
 
-check: selfcheck lint
+check: selfcheck test lint
 
 isort:
 	poetry run isort page_analyzer
