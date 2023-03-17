@@ -21,6 +21,8 @@ jobs:
         run: |
           pip install poetry
           make install
-      - name: Run linter
+      - name: Check linter and tests
         run: |
           make check
+        env:
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
