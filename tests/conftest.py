@@ -1,5 +1,8 @@
 """Fixtures for tests."""
 
+import os
+
+import psycopg2
 import pytest
 from page_analyzer import app
 
