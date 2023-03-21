@@ -11,7 +11,7 @@ def execute_sql(sql_type, sql_command, sql_params):
                 return cur.fetchall()
 
 
-def get_data_from_db(data_type, params={}):
+def get_from_urls(data_type, params={}):
     get_url_id = """
         SELECT id
         FROM urls
@@ -25,9 +25,15 @@ def get_data_from_db(data_type, params={}):
     """
 
     get_all_urls = """
-        SELECT id, name
+        SELECT urls.id, urls.name, checks.last_check
         FROM urls
-        ORDER BY id DESC;
+        LEFT JOIN (
+            SELECT url_id, MAX(created_at) as last_check
+            FROM url_checks
+            GROUP BY url_id
+        ) checks
+            ON (urls.id = checks.url_id)
+        ORDER BY urls.id DESC;
     """
 
     sql_selects = {
@@ -44,9 +50,29 @@ def get_data_from_db(data_type, params={}):
     return selected_data
 
 
-def add_data_to_db(params):
+def get_from_url_checks(url_id):
+    select_by_url_id = """
+        SELECT * FROM url_checks
+        WHERE url_id = %(url_id)s
+        ORDER BY id DESC;
+    """
+
+    return execute_sql('select', select_by_url_id, {'url_id': url_id})
+
+
+def add_data_to_db(table, params):
     insert_url = """
         INSERT INTO urls (name, created_at)
         VALUES (%(name)s, %(created_at)s);
     """
-    execute_sql('insert', insert_url, params)
+
+    insert_url_check = """
+        INSERT INTO url_checks (url_id, created_at)
+        VALUES (%(url_id)s, %(created_at)s);
+    """
+
+    inserts = {
+        'urls': insert_url,
+        'url_checks': insert_url_check,
+    }
+    execute_sql('insert', inserts[table], params)

@@ -1,16 +1,11 @@
 """Fixtures for tests."""
-
-import os
-
-import psycopg2
 import pytest
 from page_analyzer import app
-
-app.config.update({
-    "TESTING": True,
-})
 
 
 @pytest.fixture()
 def client():
-    return app.test_client()
+    app.config['TESTING'] = True
+    with app.test_client() as client:
+        with app.app_context():
+            yield client

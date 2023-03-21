@@ -24,7 +24,7 @@ def index():
 
 @app.get('/urls')
 def urls_list():
-    all_urls = sql.get_data_from_db('get_all_urls')
+    all_urls = sql.get_from_urls('get_all_urls')
     return render_template('urls.html', urls=all_urls)
 
 
@@ -43,21 +43,34 @@ def url_add():
         'created_at': date.today(),
     }
     try:
-        sql.add_data_to_db(insert_params)
+        sql.add_data_to_db('urls', insert_params)
     except psycopg2.errors.UniqueViolation:
         flash('Страница уже существует', 'error')
     else:
         flash('Страница успешно добавлена', 'success')
 
-    url_id = sql.get_data_from_db('get_url_id', {'name': name})
+    url_id = sql.get_from_urls('get_url_id', {'name': name})
     return redirect(url_for('url_details', id=url_id))
 
 
 @app.route('/urls/<id>')
 def url_details(id):
-    url_id, name, created_at = sql.get_data_from_db('get_url_data', {'id': id})
+    url_data = sql.get_from_urls('get_url_data', {'id': id})
+    url_checks = sql.get_from_url_checks(url_data[0])
     return render_template(
         'url_details.html',
-        id=url_id, name=name,
-        created_at=created_at,
+        url_data=url_data,
+        url_checks=url_checks,
     )
+
+
+@app.post('/urls/<id>/checks')
+def url_check(id):
+    url_check_params = {
+        'url_id': id,
+        'created_at': date.today(),
+    }
+    sql.add_data_to_db('url_checks', url_check_params)
+    flash('Страница успешно проверена', 'success')
+
+    return redirect(url_for('url_details', id=id))
