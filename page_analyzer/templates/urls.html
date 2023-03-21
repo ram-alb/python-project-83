@@ -28,7 +28,11 @@
                 {% else %}
                   <td></td>
                 {% endif %}
-                <td></td>
+                {% if url.3 %}
+                  <td>{{ url.3 }}</td>
+                {% else %}
+                  <td></td>
+                {% endif %}
               </tr>
             {% endfor %}
 

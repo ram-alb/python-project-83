@@ -3,6 +3,7 @@ from datetime import date
 from urllib.parse import urlparse
 
 import psycopg2
+import requests
 import validators
 from dotenv import load_dotenv
 from flask import Flask, flash, redirect, render_template, request, url_for
@@ -66,8 +67,19 @@ def url_details(id):
 
 @app.post('/urls/<id>/checks')
 def url_check(id):
+    url_data = sql.get_from_urls('get_url_data', {'id': id})
+
+    try:
+        resp = requests.get(url_data[1])
+    except requests.exceptions.RequestException:
+        flash('Произошла ошибка при проверке', 'error')
+        return redirect(url_for('url_details', id=id))
+
+    print(resp.status_code)
+
     url_check_params = {
         'url_id': id,
+        'status_code': resp.status_code,
         'created_at': date.today(),
     }
     sql.add_data_to_db('url_checks', url_check_params)

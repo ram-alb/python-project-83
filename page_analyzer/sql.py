@@ -25,12 +25,17 @@ def get_from_urls(data_type, params={}):
     """
 
     get_all_urls = """
-        SELECT urls.id, urls.name, checks.last_check
+        SELECT urls.id, urls.name, checks.last_check, checks.status_code
         FROM urls
         LEFT JOIN (
-            SELECT url_id, MAX(created_at) as last_check
+            SELECT
+                DISTINCT ON (url_id) url_id,
+                status_code,
+                created_at as last_check
             FROM url_checks
-            GROUP BY url_id
+            ORDER BY
+                url_id,
+                id DESC
         ) checks
             ON (urls.id = checks.url_id)
         ORDER BY urls.id DESC;
@@ -67,8 +72,8 @@ def add_data_to_db(table, params):
     """
 
     insert_url_check = """
-        INSERT INTO url_checks (url_id, created_at)
-        VALUES (%(url_id)s, %(created_at)s);
+        INSERT INTO url_checks (url_id, status_code, created_at)
+        VALUES (%(url_id)s, %(status_code)s, %(created_at)s);
     """
 
     inserts = {
