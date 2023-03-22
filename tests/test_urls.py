@@ -24,6 +24,7 @@ def test_invalid_url_add(client):
     })
 
     assert 'Некорректный URL' in response.text
+    assert response.status_code == 422
 
 
 def test_existing_url_add(client, monkeypatch):
