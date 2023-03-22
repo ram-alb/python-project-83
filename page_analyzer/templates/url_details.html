@@ -58,9 +58,9 @@
               <tr>
                 <td>{{ url_check.0 }}</td>
                 <td>{{ url_check.2 }}</td>
-                <td>{{ url_check.3 }}</td>
-                <td>{{ url_check.4 }}</td>
-                <td>{{ url_check.5 }}</td>
+                {% if url_check.3  %}<td>{{ url_check.3 }}</td>{% else %}<td></td>{% endif %}
+                {% if url_check.4  %}<td>{{ url_check.4 }}</td>{% else %}<td></td>{% endif %}
+                {% if url_check.5  %}<td>{{ url_check.5 }}</td>{% else %}<td></td>{% endif %}
                 <td>{{ url_check.6 }}</td>
               </tr>
             {% endfor %}

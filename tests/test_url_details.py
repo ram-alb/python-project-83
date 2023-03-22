@@ -1,5 +1,5 @@
-from page_analyzer import sql
 import requests
+from page_analyzer import sql
 
 
 def fake_get_from_urls(data_type, params):
@@ -46,6 +46,7 @@ def test_url_check_success(client, monkeypatch):
     def fake_requests_get(url):
         class Response():
             status_code = 302
+            headers = {'Content-Type': 'some header'}
         return Response()
 
     monkeypatch.setattr(sql, 'add_data_to_db', fake_add_data_to_db)

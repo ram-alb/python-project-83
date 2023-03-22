@@ -3,12 +3,13 @@ from datetime import date
 from urllib.parse import urlparse
 
 import psycopg2
-import requests
 import validators
 from dotenv import load_dotenv
 from flask import Flask, flash, redirect, render_template, request, url_for
 
 from . import sql
+from .html_parser import parse_html
+from .http_requests import make_request
 
 load_dotenv()
 
@@ -69,20 +70,27 @@ def url_details(id):
 def url_check(id):
     url_data = sql.get_from_urls('get_url_data', {'id': id})
 
-    try:
-        resp = requests.get(url_data[1])
-    except requests.exceptions.RequestException:
+    response = make_request(url_data[1])
+    if not response:
         flash('Произошла ошибка при проверке', 'error')
         return redirect(url_for('url_details', id=id))
 
-    print(resp.status_code)
+    if 'html' in response.headers['Content-Type']:
+        html_data = parse_html(response.text)
+    else:
+        html_data = {
+            'h1': None,
+            'title': None,
+            'description': None,
+        }
 
-    url_check_params = {
+    sql.add_data_to_db('url_checks', {
         'url_id': id,
-        'status_code': resp.status_code,
+        'status_code': response.status_code,
         'created_at': date.today(),
-    }
-    sql.add_data_to_db('url_checks', url_check_params)
+        **html_data
+    })
+
     flash('Страница успешно проверена', 'success')
 
     return redirect(url_for('url_details', id=id))

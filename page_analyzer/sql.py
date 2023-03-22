@@ -72,8 +72,21 @@ def add_data_to_db(table, params):
     """
 
     insert_url_check = """
-        INSERT INTO url_checks (url_id, status_code, created_at)
-        VALUES (%(url_id)s, %(status_code)s, %(created_at)s);
+        INSERT INTO url_checks (
+            url_id,
+            status_code,
+            h1,
+            title,
+            description,
+            created_at
+        )
+        VALUES (
+            %(url_id)s,
+            %(status_code)s,
+            %(h1)s,
+            %(title)s,
+            %(description)s,
+            %(created_at)s);
     """
 
     inserts = {
