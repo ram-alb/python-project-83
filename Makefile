@@ -7,6 +7,9 @@ lint:
 test:
 	poetry run pytest tests
 
+test-coverage:
+	poetry run pytest --cov=page_analyzer --cov-report xml
+
 selfcheck:
 	poetry check
 
