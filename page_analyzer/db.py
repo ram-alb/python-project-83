@@ -1,10 +1,9 @@
-import os
-
 import psycopg2
+from flask import current_app
 
 
 def execute_sql(sql_type, sql_command, sql_params):
-    with psycopg2.connect(os.getenv('DATABASE_URL')) as conn:
+    with psycopg2.connect(current_app.config['DATABASE_URL']) as conn:
         with conn.cursor() as cur:
             cur.execute(sql_command, sql_params)
             if sql_type == 'select':
