@@ -7,7 +7,7 @@ import validators
 from dotenv import load_dotenv
 from flask import Flask, flash, redirect, render_template, request, url_for
 
-from . import sql
+from . import db
 from .html_parser import parse_html
 from .http_requests import make_request
 
@@ -26,7 +26,7 @@ def index():
 
 @app.get('/urls')
 def urls_list():
-    all_urls = sql.get_from_urls('get_all_urls')
+    all_urls = db.get_from_urls('get_all_urls')
     return render_template('urls.html', urls=all_urls)
 
 
@@ -45,20 +45,20 @@ def url_add():
         'created_at': date.today(),
     }
     try:
-        sql.add_data_to_db('urls', insert_params)
+        db.add_data_to_db('urls', insert_params)
     except psycopg2.errors.UniqueViolation:
         flash('Страница уже существует', 'error')
     else:
         flash('Страница успешно добавлена', 'success')
 
-    url_id = sql.get_from_urls('get_url_id', {'name': name})
+    url_id = db.get_from_urls('get_url_id', {'name': name})
     return redirect(url_for('url_details', id=url_id))
 
 
 @app.route('/urls/<id>')
 def url_details(id):
-    url_data = sql.get_from_urls('get_url_data', {'id': id})
-    url_checks = sql.get_from_url_checks(url_data[0])
+    url_data = db.get_from_urls('get_url_data', {'id': id})
+    url_checks = db.get_from_url_checks(url_data[0])
     return render_template(
         'url_details.html',
         url_data=url_data,
@@ -68,7 +68,7 @@ def url_details(id):
 
 @app.post('/urls/<id>/checks')
 def url_check(id):
-    url_data = sql.get_from_urls('get_url_data', {'id': id})
+    url_data = db.get_from_urls('get_url_data', {'id': id})
 
     response = make_request(url_data[1])
     if not response:
@@ -84,7 +84,7 @@ def url_check(id):
             'description': None,
         }
 
-    sql.add_data_to_db('url_checks', {
+    db.add_data_to_db('url_checks', {
         'url_id': id,
         'status_code': response.status_code,
         'created_at': date.today(),

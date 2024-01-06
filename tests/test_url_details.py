@@ -1,5 +1,5 @@
 import requests
-from page_analyzer import sql
+from page_analyzer import db
 
 
 def fake_get_from_urls(data_type, params):
@@ -17,8 +17,8 @@ def test_url_details(client, monkeypatch):
             (2, 10, '', '', '', '', '2023-02-20'),
         ]
 
-    monkeypatch.setattr(sql, 'get_from_urls', fake_get_from_urls)
-    monkeypatch.setattr(sql, 'get_from_url_checks', fake_get_from_url_checks)
+    monkeypatch.setattr(db, 'get_from_urls', fake_get_from_urls)
+    monkeypatch.setattr(db, 'get_from_url_checks', fake_get_from_url_checks)
 
     response = client.get('/urls/10')
 
@@ -30,8 +30,8 @@ def test_url_details(client, monkeypatch):
 
 
 def test_url_check_fail(client, monkeypatch):
-    monkeypatch.setattr(sql, 'add_data_to_db', fake_add_data_to_db)
-    monkeypatch.setattr(sql, 'get_from_urls', fake_get_from_urls)
+    monkeypatch.setattr(db, 'add_data_to_db', fake_add_data_to_db)
+    monkeypatch.setattr(db, 'get_from_urls', fake_get_from_urls)
 
     response = client.post('/urls/10/checks', data={})
 
@@ -49,8 +49,8 @@ def test_url_check_success(client, monkeypatch):
             headers = {'Content-Type': 'some header'}
         return Response()
 
-    monkeypatch.setattr(sql, 'add_data_to_db', fake_add_data_to_db)
-    monkeypatch.setattr(sql, 'get_from_urls', fake_get_from_urls)
+    monkeypatch.setattr(db, 'add_data_to_db', fake_add_data_to_db)
+    monkeypatch.setattr(db, 'get_from_urls', fake_get_from_urls)
     monkeypatch.setattr(requests, 'get', fake_requests_get)
 
     response = client.post('/urls/10/checks', data={})

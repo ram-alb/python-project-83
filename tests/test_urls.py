@@ -1,5 +1,5 @@
 import psycopg2
-from page_analyzer import sql
+from page_analyzer import db
 
 
 def test_urls_list(client, monkeypatch):
@@ -9,7 +9,7 @@ def test_urls_list(client, monkeypatch):
             (2, 'http://test.com'),
         ]
 
-    monkeypatch.setattr(sql, 'get_from_urls', fake_get_from_urls)
+    monkeypatch.setattr(db, 'get_from_urls', fake_get_from_urls)
 
     response = client.get('/urls')
 
@@ -34,8 +34,8 @@ def test_existing_url_add(client, monkeypatch):
     def fake_get_from_urls(data_type, params):
         return 55
 
-    monkeypatch.setattr(sql, 'add_data_to_db', fake_add_data_to_db)
-    monkeypatch.setattr(sql, 'get_from_urls', fake_get_from_urls)
+    monkeypatch.setattr(db, 'add_data_to_db', fake_add_data_to_db)
+    monkeypatch.setattr(db, 'get_from_urls', fake_get_from_urls)
 
     response = client.post('/urls', data={
         'url': 'http://someurl.com',
@@ -56,8 +56,8 @@ def test_success_url_add(client, monkeypatch):
     def fake_get_from_urls(data_type, params):
         return 55
 
-    monkeypatch.setattr(sql, 'add_data_to_db', fake_add_data_to_db)
-    monkeypatch.setattr(sql, 'get_from_urls', fake_get_from_urls)
+    monkeypatch.setattr(db, 'add_data_to_db', fake_add_data_to_db)
+    monkeypatch.setattr(db, 'get_from_urls', fake_get_from_urls)
 
     response = client.post('/urls', data={
         'url': 'https://someurl.com',
