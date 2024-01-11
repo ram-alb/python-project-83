@@ -1,3 +1,5 @@
+from collections import namedtuple
+
 import psycopg2
 from flask import current_app
 from psycopg2.extras import NamedTupleCursor
@@ -37,24 +39,45 @@ def insert_to_db(sql_command, sql_params=None):
 
 
 def get_all_urls():
-    sql_select = """
-        SELECT urls.id, urls.name, checks.last_check, checks.status_code
+    select_urls = """
+        SELECT id, name
         FROM urls
-        LEFT JOIN (
-            SELECT
-                DISTINCT ON (url_id) url_id,
-                status_code,
-                created_at as last_check
-            FROM url_checks
-            ORDER BY
-                url_id,
-                id DESC
-        ) checks
-            ON (urls.id = checks.url_id)
-        ORDER BY urls.id DESC;
+        ORDER BY id DESC;
     """
 
-    return fetch_all(sql_select)
+    select_url_checks = """
+        SELECT
+            DISTINCT ON (url_id) url_id,
+            status_code,
+            created_at
+        FROM url_checks
+        ORDER BY
+            url_id,
+            id DESC;
+    """
+
+    selected_urls = fetch_all(select_urls)
+    selected_url_checks = fetch_all(select_url_checks)
+
+    url_checks_dict = {
+        check.url_id: check for check in selected_url_checks
+    }
+
+    urls = []
+    url_item = namedtuple(
+        'UrlItem',
+        ['id', 'name', 'status_code', 'last_check'],
+    )
+    for selected_url in selected_urls:
+        check = url_checks_dict.get(selected_url.id, None)
+        url = url_item(
+            id=selected_url.id,
+            name=selected_url.name,
+            status_code=check.status_code if check else None,
+            last_check=check.created_at if check else None,
+        )
+        urls.append(url)
+    return urls
 
 
 def get_url_id(url_name):
