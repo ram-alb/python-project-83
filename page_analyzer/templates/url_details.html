@@ -17,22 +17,22 @@
   <main class="flex-grow-1">
     <div class="container-lg mt-3">
 
-      <h1>Сайт: {{ url_data.1 }}</h1>
+      <h1>Сайт: {{ url_data.name }}</h1>
 
       <div class="table-responsive">
         <table class="table table-bordered table-hover text-nowrap" data-test="url">
           <tbody>
             <tr>
               <td>ID</td>
-              <td>{{ url_data.0 }}</td>
+              <td>{{ url_data.id }}</td>
             </tr>
             <tr>
               <td>Имя</td>
-              <td>{{ url_data.1 }}</td>
+              <td>{{ url_data.name }}</td>
             </tr>
             <tr>
               <td>Дата создания</td>
-              <td>{{ url_data.2 }}</td>
+              <td>{{ url_data.created_at }}</td>
             </tr>
           </tbody>
         </table>
@@ -56,12 +56,12 @@
             </tr>
             {% for url_check in url_checks %}
               <tr>
-                <td>{{ url_check.0 }}</td>
-                <td>{{ url_check.2 }}</td>
-                {% if url_check.3  %}<td>{{ url_check.3 }}</td>{% else %}<td></td>{% endif %}
-                {% if url_check.4  %}<td>{{ url_check.4 }}</td>{% else %}<td></td>{% endif %}
-                {% if url_check.5  %}<td>{{ url_check.5 }}</td>{% else %}<td></td>{% endif %}
-                <td>{{ url_check.6 }}</td>
+                <td>{{ url_check.id }}</td>
+                <td>{{ url_check.status_code }}</td>
+                {% if url_check.h1  %}<td>{{ url_check.h1 }}</td>{% else %}<td></td>{% endif %}
+                {% if url_check.title  %}<td>{{ url_check.title }}</td>{% else %}<td></td>{% endif %}
+                {% if url_check.description  %}<td>{{ url_check.description }}</td>{% else %}<td></td>{% endif %}
+                <td>{{ url_check.created_at }}</td>
               </tr>
             {% endfor %}
           </tbody>

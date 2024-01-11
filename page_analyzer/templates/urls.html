@@ -19,17 +19,17 @@
 
             {% for url in urls %}
               <tr>
-                <td>{{ url.0 }}</td>
+                <td>{{ url.id }}</td>
                 <td>
-                  <a href="{{ url_for('url_details', id=url.0) }}">{{ url.1 }}</a>
+                  <a href="{{ url_for('url_details', id=url.id) }}">{{ url.name }}</a>
                 </td>
-                {% if url.2 %}
-                  <td>{{ url.2 }}</td>
+                {% if url.last_check %}
+                  <td>{{ url.last_check }}</td>
                 {% else %}
                   <td></td>
                 {% endif %}
-                {% if url.3 %}
-                  <td>{{ url.3 }}</td>
+                {% if url.status_code %}
+                  <td>{{ url.status_code }}</td>
                 {% else %}
                   <td></td>
                 {% endif %}

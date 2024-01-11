@@ -27,7 +27,7 @@ def index():
 
 @app.get('/urls')
 def urls_list():
-    all_urls = db.get_from_urls('get_all_urls')
+    all_urls = db.get_all_urls()
     return render_template('urls.html', urls=all_urls)
 
 
@@ -39,27 +39,28 @@ def url_add():
         return render_template('index.html', url=url), 422
 
     parsed_url = urlparse(url)
-    name = f'{parsed_url.scheme}://{parsed_url.netloc}'
+    url_name = f'{parsed_url.scheme}://{parsed_url.netloc}'
 
     insert_params = {
-        'name': name,
+        'name': url_name,
         'created_at': date.today(),
     }
     try:
-        db.add_data_to_db('urls', insert_params)
+        db.add_data_to_urls(insert_params)
     except psycopg2.errors.UniqueViolation:
         flash('Страница уже существует', 'error')
     else:
         flash('Страница успешно добавлена', 'success')
 
-    url_id = db.get_from_urls('get_url_id', {'name': name})
+    url_id = db.get_url_id(url_name)
     return redirect(url_for('url_details', id=url_id))
 
 
 @app.route('/urls/<id>')
 def url_details(id):
-    url_data = db.get_from_urls('get_url_data', {'id': id})
-    url_checks = db.get_from_url_checks(url_data[0])
+    url_data = db.get_url_data(id)
+    url_checks = db.get_from_url_checks(id)
+
     return render_template(
         'url_details.html',
         url_data=url_data,
@@ -69,9 +70,9 @@ def url_details(id):
 
 @app.post('/urls/<id>/checks')
 def url_check(id):
-    url_data = db.get_from_urls('get_url_data', {'id': id})
+    url_data = db.get_url_data(id)
 
-    response = make_request(url_data[1])
+    response = make_request(url_data.name)
     if not response:
         flash('Произошла ошибка при проверке', 'error')
         return redirect(url_for('url_details', id=id))
@@ -85,7 +86,7 @@ def url_check(id):
             'description': None,
         }
 
-    db.add_data_to_db('url_checks', {
+    db.add_data_to_url_checks({
         'url_id': id,
         'status_code': response.status_code,
         'created_at': date.today(),

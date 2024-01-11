@@ -1,29 +1,43 @@
 import psycopg2
 from flask import current_app
+from psycopg2.extras import NamedTupleCursor
 
 
-def execute_sql(sql_type, sql_command, sql_params):
-    with psycopg2.connect(current_app.config['DATABASE_URL']) as conn:
-        with conn.cursor() as cur:
-            cur.execute(sql_command, sql_params)
-            if sql_type == 'select':
-                return cur.fetchall()
+def connect_to_db():
+    return psycopg2.connect(
+        current_app.config['DATABASE_URL'],
+        cursor_factory=NamedTupleCursor,
+    )
 
 
-def get_from_urls(data_type, params={}):
-    get_url_id = """
-        SELECT id
-        FROM urls
-        WHERE name = %(name)s;
-    """
+def fetch_all(sql_command, sql_params=None):
+    connection = connect_to_db()
+    with connection.cursor() as cur:
+        cur.execute(sql_command, sql_params)
+        selected_data = cur.fetchall()
+    connection.close()
+    return selected_data
 
-    get_url_data = """
-        SELECT id, name, created_at
-        FROM urls
-        WHERE id = %(id)s;
-    """
 
-    get_all_urls = """
+def fetch_one(sql_command, sql_params=None):
+    connection = connect_to_db()
+    with connection.cursor() as cur:
+        cur.execute(sql_command, sql_params)
+        selected_data = cur.fetchone()
+    connection.close()
+    return selected_data
+
+
+def insert_to_db(sql_command, sql_params=None):
+    connection = connect_to_db()
+    with connection.cursor() as cur:
+        cur.execute(sql_command, sql_params)
+    connection.commit()
+    connection.close()
+
+
+def get_all_urls():
+    sql_select = """
         SELECT urls.id, urls.name, checks.last_check, checks.status_code
         FROM urls
         LEFT JOIN (
@@ -40,18 +54,26 @@ def get_from_urls(data_type, params={}):
         ORDER BY urls.id DESC;
     """
 
-    sql_selects = {
-        'get_url_id': get_url_id,
-        'get_url_data': get_url_data,
-        'get_all_urls': get_all_urls,
-    }
+    return fetch_all(sql_select)
 
-    selected_data = execute_sql('select', sql_selects[data_type], params)
-    if data_type == 'get_url_id':
-        return selected_data[0][0]
-    elif data_type == 'get_url_data':
-        return selected_data[0]
-    return selected_data
+
+def get_url_id(url_name):
+    sql_select = """
+        SELECT id
+        FROM urls
+        WHERE name = %(name)s;
+    """
+    selected_url_id = fetch_one(sql_select, {'name': url_name})
+    return selected_url_id.id
+
+
+def get_url_data(url_id):
+    sql_select = """
+        SELECT id, name, created_at
+        FROM urls
+        WHERE id = %(id)s;
+    """
+    return fetch_one(sql_select, {'id': url_id})
 
 
 def get_from_url_checks(url_id):
@@ -61,15 +83,18 @@ def get_from_url_checks(url_id):
         ORDER BY id DESC;
     """
 
-    return execute_sql('select', select_by_url_id, {'url_id': url_id})
+    return fetch_all(select_by_url_id, {'url_id': url_id})
 
 
-def add_data_to_db(table, params):
+def add_data_to_urls(params):
     insert_url = """
         INSERT INTO urls (name, created_at)
         VALUES (%(name)s, %(created_at)s);
     """
+    insert_to_db(insert_url, params)
 
+
+def add_data_to_url_checks(params):
     insert_url_check = """
         INSERT INTO url_checks (
             url_id,
@@ -88,8 +113,4 @@ def add_data_to_db(table, params):
             %(created_at)s);
     """
 
-    inserts = {
-        'urls': insert_url,
-        'url_checks': insert_url_check,
-    }
-    execute_sql('insert', inserts[table], params)
+    insert_to_db(insert_url_check, params)

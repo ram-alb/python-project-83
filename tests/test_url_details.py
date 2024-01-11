@@ -2,22 +2,43 @@ import requests
 from page_analyzer import db
 
 
-def fake_get_from_urls(data_type, params):
-    return (10, 'http://someurl.com', '2022-03-10')
+def fake_get_url_data(id):
+    class UrlData:
+        id = 10
+        name = 'http://someurl.com'
+        created_at = '2022-03-10'
+    return UrlData
 
 
-def fake_add_data_to_db(table, params):
+def fake_get_from_url_checks(url_id):
+    return [
+        {
+            'id': 1,
+            'url_id': 10,
+            'status_code': None,
+            'h1': None,
+            'title': None,
+            'description': None,
+            'created_at': '2022-04-05'
+        },
+        {
+            'id': 2,
+            'url_id': 10,
+            'status_code': None,
+            'h1': None,
+            'title': None,
+            'description': None,
+            'created_at': '2023-02-20'
+        },
+    ]
+
+
+def fake_add_data_to_url_checks(params):
     pass
 
 
 def test_url_details(client, monkeypatch):
-    def fake_get_from_url_checks(url_id):
-        return [
-            (1, 10, '', '', '', '', '2022-04-05'),
-            (2, 10, '', '', '', '', '2023-02-20'),
-        ]
-
-    monkeypatch.setattr(db, 'get_from_urls', fake_get_from_urls)
+    monkeypatch.setattr(db, 'get_url_data', fake_get_url_data)
     monkeypatch.setattr(db, 'get_from_url_checks', fake_get_from_url_checks)
 
     response = client.get('/urls/10')
@@ -30,8 +51,8 @@ def test_url_details(client, monkeypatch):
 
 
 def test_url_check_fail(client, monkeypatch):
-    monkeypatch.setattr(db, 'add_data_to_db', fake_add_data_to_db)
-    monkeypatch.setattr(db, 'get_from_urls', fake_get_from_urls)
+    monkeypatch.setattr(db, 'add_data_to_url_checks', fake_add_data_to_url_checks)
+    monkeypatch.setattr(db, 'get_url_data', fake_get_url_data)
 
     response = client.post('/urls/10/checks', data={})
 
@@ -49,8 +70,8 @@ def test_url_check_success(client, monkeypatch):
             headers = {'Content-Type': 'some header'}
         return Response()
 
-    monkeypatch.setattr(db, 'add_data_to_db', fake_add_data_to_db)
-    monkeypatch.setattr(db, 'get_from_urls', fake_get_from_urls)
+    monkeypatch.setattr(db, 'add_data_to_url_checks', fake_add_data_to_url_checks)
+    monkeypatch.setattr(db, 'get_url_data', fake_get_url_data)
     monkeypatch.setattr(requests, 'get', fake_requests_get)
 
     response = client.post('/urls/10/checks', data={})

@@ -3,13 +3,13 @@ from page_analyzer import db
 
 
 def test_urls_list(client, monkeypatch):
-    def fake_get_from_urls(data_type):
+    def fake_get_all_urls():
         return [
-            (1, 'http://example.com'),
-            (2, 'http://test.com'),
+            {'id': 1, 'name': 'http://example.com'},
+            {'id': 2, 'name': 'http://test.com'},
         ]
 
-    monkeypatch.setattr(db, 'get_from_urls', fake_get_from_urls)
+    monkeypatch.setattr(db, 'get_all_urls', fake_get_all_urls)
 
     response = client.get('/urls')
 
@@ -28,14 +28,14 @@ def test_invalid_url_add(client):
 
 
 def test_existing_url_add(client, monkeypatch):
-    def fake_add_data_to_db(table, params):
+    def fake_add_data_to_urls(params):
         raise psycopg2.errors.UniqueViolation
 
-    def fake_get_from_urls(data_type, params):
+    def fake_get_url_id(url_name):
         return 55
 
-    monkeypatch.setattr(db, 'add_data_to_db', fake_add_data_to_db)
-    monkeypatch.setattr(db, 'get_from_urls', fake_get_from_urls)
+    monkeypatch.setattr(db, 'add_data_to_urls', fake_add_data_to_urls)
+    monkeypatch.setattr(db, 'get_url_id', fake_get_url_id)
 
     response = client.post('/urls', data={
         'url': 'http://someurl.com',
@@ -50,14 +50,14 @@ def test_existing_url_add(client, monkeypatch):
 
 
 def test_success_url_add(client, monkeypatch):
-    def fake_add_data_to_db(table, params):
+    def fake_add_data_to_urls(params):
         pass
 
-    def fake_get_from_urls(data_type, params):
+    def fake_get_url_id(url_name):
         return 55
 
-    monkeypatch.setattr(db, 'add_data_to_db', fake_add_data_to_db)
-    monkeypatch.setattr(db, 'get_from_urls', fake_get_from_urls)
+    monkeypatch.setattr(db, 'add_data_to_urls', fake_add_data_to_urls)
+    monkeypatch.setattr(db, 'get_url_id', fake_get_url_id)
 
     response = client.post('/urls', data={
         'url': 'https://someurl.com',
