@@ -3,13 +3,13 @@ from datetime import date
 from urllib.parse import urlparse
 
 import psycopg2
-import validators
 from dotenv import load_dotenv
 from flask import Flask, flash, redirect, render_template, request, url_for
 
 from . import db
 from .html_parser import parse_html
 from .http_requests import make_request
+from .validation import validate_url
 
 load_dotenv()
 
@@ -37,8 +37,9 @@ def urls_list():
 @app.post('/urls')
 def url_add():
     url = request.form.get('url')
-    if not validators.url(url):
-        flash('Некорректный URL', 'error')
+    is_valid_url, url_error = validate_url(url)
+    if not is_valid_url:
+        flash(url_error, 'error')
         return render_template('index.html', url=url), 422
 
     parsed_url = urlparse(url)
