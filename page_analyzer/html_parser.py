@@ -11,7 +11,10 @@ def parse_html(html):
     title = title_tag.text.strip() if title_tag else None
 
     meta = soup.find('meta', attrs={'name': 'description'})
-    description = meta['content'].strip() if meta else None
+    if meta and 'content' in meta.attrs:
+        description = meta.get('content').strip()
+    else:
+        description = None
 
     return {
         'title': title,
