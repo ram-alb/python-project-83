@@ -16,6 +16,9 @@ class FakeConnection:
     def commit(self):
         pass
 
+    def rollback(self):
+        pass
+
     def close(self):
         pass
 

@@ -52,11 +52,12 @@ def url_add():
     with connection_to_db.cursor() as cursor:
         try:
             db.add_data_to_urls(cursor, insert_params)
-            connection_to_db.commit()
         except psycopg2.errors.UniqueViolation:
             flash('Страница уже существует', 'error')
+            connection_to_db.rollback()
         else:
             flash('Страница успешно добавлена', 'success')
+            connection_to_db.commit()
 
         url_id = db.get_url_id(cursor, url_name)
     connection_to_db.close()
