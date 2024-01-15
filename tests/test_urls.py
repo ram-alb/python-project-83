@@ -2,40 +2,48 @@ import psycopg2
 from page_analyzer import db
 
 
-def test_urls_list(client, monkeypatch):
-    def fake_get_all_urls():
-        return [
-            {'id': 1, 'name': 'http://example.com'},
-            {'id': 2, 'name': 'http://test.com'},
-        ]
-
-    monkeypatch.setattr(db, 'get_all_urls', fake_get_all_urls)
-
+def test_get_urls_list(client, connect_to_db):
     response = client.get('/urls')
 
     assert response.status_code == 200
+    assert '<h1>Сайты</h1>' in response.text
     assert 'http://example.com' in response.text
     assert 'http://test.com' in response.text
 
 
-def test_invalid_url_add(client):
+def test_post_urls_empty_url(client):
+    response = client.post('/urls', data={
+        'url': '',
+    })
+
+    assert response.status_code == 422
+    assert 'URL обязателен' in response.text
+
+
+def test_post_urls_long_url(client):
+    very_long_url = ''.join('a' for _ in range(256))
+    response = client.post('/urls', data={
+        'url': very_long_url,
+    })
+
+    assert response.status_code == 422
+    assert 'URL превышает 255 символов' in response.text
+
+
+def test_post_urls_invalid_url(client):
     response = client.post('/urls', data={
         'url': 'invalid_url',
     })
 
-    assert 'Некорректный URL' in response.text
     assert response.status_code == 422
+    assert 'Некорректный URL' in response.text
 
 
-def test_existing_url_add(client, monkeypatch):
-    def fake_add_data_to_urls(params):
+def test_post_urls_existing_url(client, connect_to_db, monkeypatch):
+    def fake_add_data_to_urls(cursor, params):
         raise psycopg2.errors.UniqueViolation
 
-    def fake_get_url_id(url_name):
-        return 55
-
     monkeypatch.setattr(db, 'add_data_to_urls', fake_add_data_to_urls)
-    monkeypatch.setattr(db, 'get_url_id', fake_get_url_id)
 
     response = client.post('/urls', data={
         'url': 'http://someurl.com',
@@ -49,15 +57,11 @@ def test_existing_url_add(client, monkeypatch):
     assert '<a href="/urls/55">/urls/55</a>' in response.text
 
 
-def test_success_url_add(client, monkeypatch):
-    def fake_add_data_to_urls(params):
+def test_post_urls_success(client, connect_to_db, monkeypatch):
+    def fake_add_data_to_urls(cursor, params):
         pass
 
-    def fake_get_url_id(url_name):
-        return 55
-
     monkeypatch.setattr(db, 'add_data_to_urls', fake_add_data_to_urls)
-    monkeypatch.setattr(db, 'get_url_id', fake_get_url_id)
 
     response = client.post('/urls', data={
         'url': 'https://someurl.com',
