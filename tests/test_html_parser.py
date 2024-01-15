@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 from page_analyzer.html_parser import parse_html
 
-FIXT_PATH = Path('tests/fixtures/html_parser')
+FIXT_PATH = Path(__file__).resolve().parent / 'fixtures' / 'html_parser'
 
 full_result = {
     'title': 'Test Title',
