@@ -65,7 +65,7 @@ def url_add():
     return redirect(url_for('url_details', id=url_id))
 
 
-@app.route('/urls/<id>')
+@app.route('/urls/<int:id>')
 def url_details(id):
     connection_to_db = db.connect_to_db(app)
     with connection_to_db.cursor() as cursor:
@@ -80,7 +80,7 @@ def url_details(id):
     )
 
 
-@app.post('/urls/<id>/checks')
+@app.post('/urls/<int:id>/checks')
 def url_check(id):
     connection_to_db = db.connect_to_db(app)
 
