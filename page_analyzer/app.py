@@ -35,8 +35,8 @@ def urls_list():
 @app.post('/urls')
 def url_add():
     url = request.form.get('url')
-    is_valid_url, url_error = validate_url(url)
-    if not is_valid_url:
+    url_error = validate_url(url)
+    if url_error is not None:
         flash(url_error, 'error')
         return render_template('index.html', url=url), 422
 
