@@ -8,7 +8,7 @@ from flask import Flask, flash, redirect, render_template, request, url_for
 from . import db
 from .html_parser import parse_html
 from .http_requests import make_request
-from .url_utils import validate_url, parse_url
+from .url_utils import parse_url, validate_url
 
 load_dotenv()
 
