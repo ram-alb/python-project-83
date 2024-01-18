@@ -25,9 +25,8 @@ def index():
 @app.get('/urls')
 def urls_list():
     connection_to_db = db.connect_to_db(app)
-    with connection_to_db.cursor() as cursor:
-        all_urls = db.get_all_urls(cursor)
-    connection_to_db.close()
+    all_urls = db.get_all_urls(connection_to_db)
+    db.close_db(connection_to_db)
     return render_template('urls.html', urls=all_urls)
 
 
@@ -48,18 +47,17 @@ def url_add():
     }
 
     connection_to_db = db.connect_to_db(app)
-    with connection_to_db.cursor() as cursor:
-        try:
-            db.add_data_to_urls(cursor, insert_params)
-        except psycopg2.errors.UniqueViolation:
-            flash('Страница уже существует', 'error')
-            connection_to_db.rollback()
-        else:
-            flash('Страница успешно добавлена', 'success')
-            connection_to_db.commit()
+    try:
+        db.add_data_to_urls(connection_to_db, insert_params)
+    except psycopg2.errors.UniqueViolation:
+        flash('Страница уже существует', 'error')
+        db.rollback_db(connection_to_db)
+    else:
+        flash('Страница успешно добавлена', 'success')
+        db.commit_db(connection_to_db)
 
-        url_id = db.get_url_id(cursor, url_name)
-    connection_to_db.close()
+    url_id = db.get_url_id(connection_to_db, url_name)
+    db.close_db(connection_to_db)
 
     return redirect(url_for('url_details', id=url_id))
 
@@ -67,10 +65,9 @@ def url_add():
 @app.route('/urls/<int:id>')
 def url_details(id):
     connection_to_db = db.connect_to_db(app)
-    with connection_to_db.cursor() as cursor:
-        url_data = db.get_url_data(cursor, id)
-        url_checks = db.get_from_url_checks(cursor, id)
-    connection_to_db.close()
+    url_data = db.get_url_data(connection_to_db, id)
+    url_checks = db.get_from_url_checks(connection_to_db, id)
+    db.close_db(connection_to_db)
 
     return render_template(
         'url_details.html',
@@ -83,36 +80,34 @@ def url_details(id):
 def url_check(id):
     connection_to_db = db.connect_to_db(app)
 
-    with connection_to_db.cursor() as cursor:
-        url_data = db.get_url_data(cursor, id)
+    url_data = db.get_url_data(connection_to_db, id)
 
-        response = make_request(url_data.name)
-        if not response:
-            flash('Произошла ошибка при проверке', 'error')
-            return redirect(url_for('url_details', id=id))
+    response = make_request(url_data.name)
+    if not response:
+        flash('Произошла ошибка при проверке', 'error')
+        return redirect(url_for('url_details', id=id))
 
-        if 'html' in response.headers['Content-Type']:
-            html_data = parse_html(response.text)
-        else:
-            html_data = {
-                'h1': None,
-                'title': None,
-                'description': None,
-            }
+    if 'html' in response.headers['Content-Type']:
+        html_data = parse_html(response.text)
+    else:
+        html_data = {
+            'h1': None,
+            'title': None,
+            'description': None,
+        }
 
-        db.add_data_to_url_checks(
-            cursor,
-            {
-                'url_id': id,
-                'status_code': response.status_code,
-                'created_at': date.today(),
-                **html_data
-            },
-        )
-        connection_to_db.commit()
-        flash('Страница успешно проверена', 'success')
-
-    connection_to_db.close()
+    db.add_data_to_url_checks(
+        connection_to_db,
+        {
+            'url_id': id,
+            'status_code': response.status_code,
+            'created_at': date.today(),
+            **html_data
+        },
+    )
+    db.commit_db(connection_to_db)
+    flash('Страница успешно проверена', 'success')
+    db.close_db(connection_to_db)
 
     return redirect(url_for('url_details', id=id))
 

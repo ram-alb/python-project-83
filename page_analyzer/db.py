@@ -11,21 +11,19 @@ def connect_to_db(app):
     )
 
 
-def fetch_all(cursor, sql_command, sql_params=None):
-    cursor.execute(sql_command, sql_params)
-    return cursor.fetchall()
+def commit_db(connection):
+    return connection.commit()
 
 
-def fetch_one(cursor, sql_command, sql_params=None):
-    cursor.execute(sql_command, sql_params)
-    return cursor.fetchone()
+def rollback_db(connection):
+    return connection.rollback()
 
 
-def insert_to_db(cursor, sql_command, sql_params=None):
-    cursor.execute(sql_command, sql_params)
+def close_db(connection):
+    return connection.close()
 
 
-def get_all_urls(cursor):
+def get_all_urls(connection):
     select_urls = """
         SELECT id, name
         FROM urls
@@ -42,9 +40,11 @@ def get_all_urls(cursor):
             url_id,
             id DESC;
     """
-
-    selected_urls = fetch_all(cursor, select_urls)
-    selected_url_checks = fetch_all(cursor, select_url_checks)
+    with connection.cursor() as cursor:
+        cursor.execute(select_urls)
+        selected_urls = cursor.fetchall()
+        cursor.execute(select_url_checks)
+        selected_url_checks = cursor.fetchall()
 
     url_checks_dict = {
         check.url_id: check for check in selected_url_checks
@@ -67,44 +67,50 @@ def get_all_urls(cursor):
     return urls
 
 
-def get_url_id(cursor, url_name):
+def get_url_id(connection, url_name):
     sql_select = """
         SELECT id
         FROM urls
         WHERE name = %(name)s;
     """
-    selected_url_id = fetch_one(cursor, sql_select, {'name': url_name})
+    with connection.cursor() as cursor:
+        cursor.execute(sql_select, {'name': url_name})
+        selected_url_id = cursor.fetchone()
     return selected_url_id.id
 
 
-def get_url_data(cursor, url_id):
+def get_url_data(connection, url_id):
     sql_select = """
         SELECT id, name, created_at
         FROM urls
         WHERE id = %(id)s;
     """
-    return fetch_one(cursor, sql_select, {'id': url_id})
+    with connection.cursor() as cursor:
+        cursor.execute(sql_select, {'id': url_id})
+        return cursor.fetchone()
 
 
-def get_from_url_checks(cursor, url_id):
+def get_from_url_checks(connection, url_id):
     select_by_url_id = """
         SELECT * FROM url_checks
         WHERE url_id = %(url_id)s
         ORDER BY id DESC;
     """
+    with connection.cursor() as cursor:
+        cursor.execute(select_by_url_id, {'url_id': url_id})
+        return cursor.fetchall()
 
-    return fetch_all(cursor, select_by_url_id, {'url_id': url_id})
 
-
-def add_data_to_urls(cursor, params):
+def add_data_to_urls(connection, params):
     insert_url = """
         INSERT INTO urls (name, created_at)
         VALUES (%(name)s, %(created_at)s);
     """
-    insert_to_db(cursor, insert_url, params)
+    with connection.cursor() as cursor:
+        cursor.execute(insert_url, params)
 
 
-def add_data_to_url_checks(cursor, params):
+def add_data_to_url_checks(connection, params):
     insert_url_check = """
         INSERT INTO url_checks (
             url_id,
@@ -123,4 +129,5 @@ def add_data_to_url_checks(cursor, params):
             %(created_at)s);
     """
 
-    insert_to_db(cursor, insert_url_check, params)
+    with connection.cursor() as cursor:
+        cursor.execute(insert_url_check, params)

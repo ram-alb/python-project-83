@@ -5,6 +5,9 @@ from page_analyzer import app, db
 class FakeConnection:
     def cursor(self):
         class FakeCursor:
+            def execute(self):
+                pass
+
             def __enter__(self):
                 return self
 
