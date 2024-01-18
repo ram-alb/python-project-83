@@ -1,4 +1,5 @@
 import validators
+from urllib.parse import urlparse
 
 
 def validate_url(url, max_length=255):
@@ -12,3 +13,8 @@ def validate_url(url, max_length=255):
         return 'Некорректный URL'
 
     return None
+
+
+def parse_url(url_string):
+    parsed_url = urlparse(url_string)
+    return f'{parsed_url.scheme}://{parsed_url.netloc}'

@@ -1,6 +1,5 @@
 import os
 from datetime import date
-from urllib.parse import urlparse
 
 import psycopg2
 from dotenv import load_dotenv
@@ -9,7 +8,7 @@ from flask import Flask, flash, redirect, render_template, request, url_for
 from . import db
 from .html_parser import parse_html
 from .http_requests import make_request
-from .validation import validate_url
+from .url_utils import validate_url, parse_url
 
 load_dotenv()
 
@@ -35,13 +34,13 @@ def urls_list():
 @app.post('/urls')
 def url_add():
     url = request.form.get('url')
+
     url_error = validate_url(url)
     if url_error is not None:
         flash(url_error, 'error')
         return render_template('index.html', url=url), 422
 
-    parsed_url = urlparse(url)
-    url_name = f'{parsed_url.scheme}://{parsed_url.netloc}'
+    url_name = parse_url(url)
 
     insert_params = {
         'name': url_name,
