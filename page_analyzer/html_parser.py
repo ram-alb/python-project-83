@@ -1,8 +1,14 @@
 from bs4 import BeautifulSoup
 
 
-def parse_html(html):
-    soup = BeautifulSoup(html, 'html.parser')
+def validate_html_data(tag_text, max_length=255):
+    if tag_text:
+        return tag_text[:max_length]
+    return tag_text
+
+
+def parse_html(html_markup):
+    soup = BeautifulSoup(html_markup, 'html.parser')
 
     h1_tag = soup.find('h1')
     h1 = h1_tag.text.strip() if h1_tag else None
@@ -17,7 +23,7 @@ def parse_html(html):
         description = None
 
     return {
-        'title': title,
+        'title': validate_html_data(title),
         'description': description,
-        'h1': h1
+        'h1': validate_html_data(h1)
     }
