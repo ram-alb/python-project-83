@@ -13,8 +13,6 @@ def validate_url(url, max_length=255):
     if not validators.url(url):
         return 'Некорректный URL'
 
-    return None
-
 
 def get_domain(url_string):
     parsed_url = urlparse(url_string)

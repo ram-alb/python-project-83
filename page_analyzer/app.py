@@ -35,7 +35,7 @@ def url_add():
     url = request.form.get('url')
 
     url_error = validate_url(url)
-    if url_error is not None:
+    if url_error:
         flash(url_error, 'error')
         return render_template('index.html', url=url), 422
 
