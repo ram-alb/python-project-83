@@ -1,10 +1,10 @@
 from bs4 import BeautifulSoup
 
 
-def validate_html_data(tag_text, max_length=255):
-    if tag_text:
-        return tag_text[:max_length]
-    return tag_text
+def limit_length(text, max_length=255):
+    if text is not None:
+        return text[:max_length]
+    return text
 
 
 def parse_html(html_markup):
@@ -23,7 +23,7 @@ def parse_html(html_markup):
         description = None
 
     return {
-        'title': validate_html_data(title),
+        'title': limit_length(title),
         'description': description,
-        'h1': validate_html_data(h1)
+        'h1': limit_length(h1)
     }

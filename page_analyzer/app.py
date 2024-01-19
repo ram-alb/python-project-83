@@ -8,7 +8,7 @@ from flask import Flask, flash, redirect, render_template, request, url_for
 from . import db
 from .html_parser import parse_html
 from .http_requests import make_request
-from .url_utils import parse_url, validate_url
+from .url_utils import get_domain, validate_url
 
 load_dotenv()
 
@@ -39,7 +39,7 @@ def url_add():
         flash(url_error, 'error')
         return render_template('index.html', url=url), 422
 
-    url_name = parse_url(url)
+    url_name = get_domain(url)
 
     insert_params = {
         'name': url_name,
